@@ -1,0 +1,31 @@
+{
+  "name": "go-platform-js-backend",
+  "version": "1.0.0",
+  "description": "GO Platform - JS Backend",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pablocience/go-platform-backend.git"
+  },
+  "keywords": [
+    "CIENCE"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pablocience/go-platform-backend/issues"
+  },
+  "homepage": "https://github.com/pablocience/go-platform-backend#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "snowflake-sdk": "^1.6.17"
+  }
+}
