@@ -6,7 +6,7 @@ const runJob = async (req, res, next) => {
     try {
         recipeToUse = determineJobFromPath(req.params.recipeName)
     } catch (error) {
-        res.status(400).json({
+        return res.status(400).json({
             status: "Invalid recipe",
             message: error?.message || "Invalid, recipe not found",
             statusCode: 400,
@@ -15,7 +15,7 @@ const runJob = async (req, res, next) => {
 
     try {
         const jobExecution = await executeJobAPI(recipeToUse)
-        res.status(200).json(jobExecution)
+        return res.status(200).json(jobExecution)
     } catch (error) {
         res.status(500).json({
             status: "Invalid job execution",
@@ -51,7 +51,7 @@ const executeJobAPI = async (recipePath) => {
 const getJobStatus = async (req, res, next) => {
     try {
         const jobStatus = await queryJobStatus(req.params.jobId)
-        res.status(200).json(jobStatus)
+        return res.status(200).json(jobStatus)
     } catch (error) {
         res.status(500).json({
             status: "Invalid job query execution",
