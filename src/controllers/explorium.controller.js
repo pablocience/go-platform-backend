@@ -50,7 +50,7 @@ const executeJobAPI = async (recipePath) => {
 
 const getJobStatus = async (req, res, next) => {
     try {
-        const jobStatus = await queryJobStatus(req.params.jobId)
+        const jobStatus = await queryJobStatusAPI(req.params.jobId)
         return res.status(200).json(jobStatus)
     } catch (error) {
         res.status(500).json({
@@ -61,7 +61,7 @@ const getJobStatus = async (req, res, next) => {
     }
 }
 
-const queryJobStatus = async (jobStatusId) => {
+const queryJobStatusAPI = async (jobStatusId) => {
     try {
         const { data } = await axios({
             url: `${process.env.EXPLORIUM_JOB_API}/recipe_runs/${jobStatusId}`,
