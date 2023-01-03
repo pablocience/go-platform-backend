@@ -35,13 +35,14 @@ const determineJobFromPath = (recipeName) => {
 
 const executeJobAPI = async (recipePath) => {
     try {
-        return { data } = await axios({
-            url: `/jobs/${process.env.EXPLORIUM_JOB_API}/${recipePath}/run`,
+        const { data } = await axios({
+            url: `${process.env.EXPLORIUM_JOB_API}/jobs/${recipePath}/run`,
             method: 'POST',
             headers: {
                 'API_KEY': process.env.EXPLORIUM_JOB_APIKEY
             }
         })
+        return data
     } catch (error) {
         throw error
     }
@@ -62,13 +63,14 @@ const getJobStatus = async (req, res, next) => {
 
 const queryJobStatus = async (jobStatusId) => {
     try {
-        return { data } = await axios({
-            url: `/recipe_runs/${jobStatusId}`,
+        const { data } = await axios({
+            url: `${process.env.EXPLORIUM_JOB_API}/recipe_runs/${jobStatusId}`,
             method: 'GET',
             headers: {
                 'API_KEY': process.env.EXPLORIUM_JOB_APIKEY
             }
         })
+        return data
     } catch (error) {
         throw error
     }

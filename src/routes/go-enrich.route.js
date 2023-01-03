@@ -10,6 +10,6 @@ const { runJob, getJobStatus } = require('../controllers/explorium.controller')
 router.get("/myfiles", getMyFiles);
 router.post("/myfiles/upload", uploadInputDataFile);
 router.post('/run-job/:recipeName', runJob)
-router.get('/query-job/:jobId')
+router.get('/query-job/:jobId', getJobStatus)
 
 module.exports = router;
