@@ -1,4 +1,4 @@
-const { connectAndExecuteQuery, getConnection } = require("../config/database");
+const { connectAndExecuteQuery } = require("../config/database");
 const csvParse = require("csv-parser");
 
 // GET
@@ -21,12 +21,43 @@ const getMyFiles = async (req, res, next) => {
     });
   });
 };
+// GET
+const getAvailableRecipes = async (req, res, next) => {
+  const query = "SELECT * FROM EXPLORIUM_RECIPES";
+  connectAndExecuteQuery(query, (rows, responseData) => {
+    res.status(responseData.statusCode).json({
+      ...responseData,
+    });
+  });
+};
+// GET
+const getAvailableRecipeColumns = async (req, res, next) => {
+  const recipeId = req.params.recipeId;
+  const query = `SELECT r.*, p.*
+  FROM EXPLORIUM_RECIPES r
+  JOIN EXPLORIUM_RECIPE_INPUT_PARAMETER_COLUMNS p
+  ON r.ID = p.RECIPE_ID
+  WHERE p.RECIPE_ID = ${recipeId};`;
+  connectAndExecuteQuery(query, (rows, responseData) => {
+    res.status(responseData.statusCode).json({
+      ...responseData,
+    });
+  });
+};
+const getAllAvailableRecipeColumns = async (req, res, next) => {
+  const query = `SELECT * FROM EXPLORIUM_RECIPE_INPUT_PARAMETER_COLUMNS;`;
+  connectAndExecuteQuery(query, (rows, responseData) => {
+    res.status(responseData.statusCode).json({
+      ...responseData,
+    });
+  });
+};
 // POST
 const uploadInputDataFile = (req, res, next) => {
   // recipe_1, recipe_2, recipe_3, recipe_4, recipe_5, recipe_6
   const recipe = "recipe_3";
   // for testing, recive data from body [{'Company name':'google', 'company domain': 'google.com'}]
-  
+
   let recipeInputTable = null;
   if (!recipe) {
     res.status(400).json({
@@ -78,7 +109,6 @@ const uploadInputDataFile = (req, res, next) => {
     ${values}
   ) t(Company_name, Company_domain);`;
 
-
   connectAndExecuteQuery(query, (rows) => {
     res.status(200).json({
       message: "Success",
@@ -92,4 +122,7 @@ const uploadInputDataFile = (req, res, next) => {
 module.exports = {
   getMyFiles,
   uploadInputDataFile,
+  getAvailableRecipes,
+  getAvailableRecipeColumns,
+  getAllAvailableRecipeColumns,
 };

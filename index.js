@@ -1,11 +1,10 @@
 const express = require("express");
 const app = express();
 require("dotenv").config();
-const cors = require('cors');
+const cors = require("cors");
 const port = process.env.PORT;
 const apiKeys = process.env.GO_API_KEY;
 const goEnrichRouter = require("./src/routes/go-enrich.route");
-
 
 app.use(
   cors({
@@ -19,11 +18,19 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 // API KEYS
 app.use((req, res, next) => {
   const apiKey = req.headers["x-api-key"];
+  const customer_id = req.headers["customer_id"];
   if (apiKey != apiKeys || !apiKey || !apiKeys) {
     return res.status(401).json({
       statusCode: 401,
       status: "Unauthorized",
       message: "Unauthorized",
+    });
+  }
+  if (!customer_id) {
+    return res.status(401).json({
+      statusCode: 401,
+      status: "Unauthorized",
+      message: "Uknown customer",
     });
   }
   next();
