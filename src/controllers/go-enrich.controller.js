@@ -6,17 +6,17 @@ const getMyFiles = async (req, res, next) => {
   const customer_id = req.headers.customer_id;
   console.log("Getting my files", customer_id);
   if (!customer_id) {
-    res.status(404).json({
+    return res.status(404).json({
       message: "Customer ID not found",
       statusCode: 404,
       status: "Not Found",
     });
   }
   const query =
-    "SELECT * FROM CUSTOMER_FILES WHERE customer_id = " + customer_id;
+    `SELECT * FROM CUSTOMER_FILES WHERE customer_id = \'${customer_id}\'`;
   console.log(query);
   connectAndExecuteQuery(query, (rows, responseData) => {
-    res.status(responseData.statusCode).json({
+    return res.status(responseData.statusCode).json({
       ...responseData,
     });
   });
