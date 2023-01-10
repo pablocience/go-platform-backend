@@ -127,7 +127,7 @@ const uploadInputDataFile = async (req, res, next) => {
   const values = data
     .map(
       (row) =>
-        `('${row.Company_name}', '${row.Domain_name}',${customer_file_result.data.ID},'${customer_id}')`
+        `('${row.company_name}', '${row.domain_name}',${customer_file_result.data.ID},'${customer_id}')`
     )
     .join(",");
   const create_recipe_data_query = `INSERT INTO ${recipeInputTable} (COMPANY_NAME, COMPANY_DOMAIN, CUSTOMER_FILES_ID, CUSTOMER_ID)
