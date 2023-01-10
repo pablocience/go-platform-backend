@@ -48,11 +48,11 @@ const uploadInputDataFile = async (req, res, next) => {
   // just a file name
   const fileName = req.body.fileName;
   // for testing, recive data from body [{'Company name':'google', 'company domain': 'google.com'}]
-  // const data = req.body.data || []
-  const data = [
-    { Company_name: "google", Domain_name: "google.com" },
-    { Company_name: "cience", Domain_name: "cience.com" },
-  ];
+  const data = req.body.data || []
+  // const data = [
+  //   { Company_name: "google", Domain_name: "google.com" },
+  //   { Company_name: "cience", Domain_name: "cience.com" },
+  // ];
 
   // VALIDATIONS - start
   if (!data || data.length === 0) {
