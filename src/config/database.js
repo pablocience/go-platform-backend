@@ -1,59 +1,111 @@
 const snowflake = require("snowflake-sdk");
 require("dotenv").config();
 let mainConnection;
-const destroyConnection = () => {
-  mainConnection.destroy();
-  mainConnection = null;
+const destroyConnection = (conn) => {
+  // conn.destroy();
+  return;
+};
+const connectionOptions = {
+  account: process.env.SNOWFLAKE_ACCOUNT,
+  username: process.env.SNOWFLAKE_USER,
+  password: process.env.SNOWFLAKE_PASSWORD,
+  application: process.env.SNOWFLAKE_APP,
+  database: process.env.SNOWFLAKE_DATABASE,
+  schema: process.env.SNOWFLAKE_DATABASE_SCHEMA,
+};
+const poolOptions = {
+  max: 100,
+  min: 0,
 };
 const getConnection = () => {
   if (!mainConnection) {
-    mainConnection = snowflake.createConnection({
-      account: process.env.SNOWFLAKE_ACCOUNT,
-      username: process.env.SNOWFLAKE_USER,
-      password: process.env.SNOWFLAKE_PASSWORD,
-      application: process.env.SNOWFLAKE_APP,
-      database: process.env.SNOWFLAKE_DATABASE,
-      schema: process.env.SNOWFLAKE_DATABASE_SCHEMA,
-    });
+    mainConnection = snowflake.createPool(connectionOptions, poolOptions);
+    // mainConnection = snowflake.createConnection(connectionOptions);
   }
   return mainConnection;
 };
-const connectAndExecuteQuery = async (query, callback) => {
+const connectAndExecuteQuery = async (query, getRecordBack) => {
   const connection = getConnection();
   // Execute a query here
-  connection.connect(async function (err, conn) {
-    if (err) {
-      console.error("Unable to connect: " + err.message);
-      destroyConnection();
-    } else {
-      console.log("Successfully connected as ID: " + conn.getId());
-    }
+  const getRows = new Promise((resolve, eject) => {
+    connection.use(async function (conn) {
+      conn.execute({
+        sqlText: query,
+        complete: async function (err, stmt, rows) {
+          if (err) {
+            destroyConnection(conn);
+            console.error("Error executing statement: " + err.message);
+            resolve({
+              status: "Internal Server Error",
+              error: true,
+              success: false,
+              statusCode: 500,
+              message: err.message,
+              data: err,
+            });
+          } else {
+            if (query.includes("INSERT INTO") && getRecordBack) {
+              const getRecordCreated = new Promise(
+                (resolveInternal, ejectInternal) => {
+                  const formatedGetRecordBack = getRecordBack.replace(
+                    ":1:",
+                    `'${stmt.getStatementId()}'`
+                  );
+
+                  conn.execute({
+                    sqlText: formatedGetRecordBack,
+                    complete: function (err, stmt, rows) {
+                      if (err) {
+                        resolveInternal({
+                          status: "Internal Server Error",
+                          error: true,
+                          success: false,
+                          statusCode: 500,
+                          message: err.message,
+                          data: err,
+                        });
+                      } else {
+                        resolveInternal({
+                          message: "Success",
+                          error: false,
+                          success: true,
+                          status: "OK",
+                          statusCode: 200,
+                          data: rows[0],
+                        });
+                      }
+                    },
+                  });
+                }
+              );
+              const recordCreated = await getRecordCreated;
+              resolve({
+                message: "Success",
+                error: false,
+                success: true,
+                status: "OK",
+                statusCode: 200,
+                data: recordCreated,
+              });
+              destroyConnection(conn);
+              return;
+            }
+
+            destroyConnection(conn);
+            resolve({
+              message: "Success",
+              error: false,
+              success: true,
+              status: "OK",
+              statusCode: 200,
+              data: rows,
+            });
+          }
+        },
+      });
+    });
   });
-  connection.execute({
-    sqlText: query,
-    complete: function (err, stmt, rows) {
-      if (err) {
-        console.error("Error executing statement: " + err.message);
-        callback(rows, {
-          status: "Internal Server Error",
-          statusCode: 500,
-          message: err.message,
-          data: err,
-        });
-      } else {
-        console.log("Successfully executed statement.");
-        console.log("Number of rows returned: " + rows.length);
-        console.log("Closing connection");
-        destroyConnection();
-        callback(rows, {
-          message: "Success",
-          status: "OK",
-          statusCode: 200,
-          data: rows,
-        });
-      }
-    },
-  });
+  return getRows;
 };
 module.exports = {
   connectAndExecuteQuery,

@@ -5,7 +5,7 @@ const {
   uploadInputDataFile,
   getAvailableRecipes,
   getAvailableRecipeColumns,
-  getAllAvailableRecipeColumns
+  createCustomerFileController,
 } = require("../controllers/go-enrich.controller");
 const { runJob, getJobStatus } = require("../controllers/explorium.controller");
 
@@ -13,8 +13,8 @@ const { runJob, getJobStatus } = require("../controllers/explorium.controller");
 router.get("/myfiles", getMyFiles);
 router.get("/recipes", getAvailableRecipes);
 router.get("/recipes/:recipeId/columns", getAvailableRecipeColumns);
-router.get("/recipes/columns", getAllAvailableRecipeColumns);
 router.post("/myfiles/upload", uploadInputDataFile);
+router.post("/create_customer_files", createCustomerFileController);
 router.post("/run-job/:recipeName", runJob);
 router.get("/query-job/:jobId", getJobStatus);
 
