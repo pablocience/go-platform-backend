@@ -26,7 +26,7 @@ app.use((req, res, next) => {
       message: "Unauthorized",
     });
   }
-  if (!customer_id) {
+  if (!customer_id || customer_id === "") {
     return res.status(401).json({
       statusCode: 401,
       status: "Unauthorized",
@@ -36,7 +36,9 @@ app.use((req, res, next) => {
   next();
 });
 app.get("/", (req, res) => {
-  res.send("API IS RUNNING!");
+  res
+    .status(200)
+    .json({ statusCode: 200, status: "OK", message: "API IS RUNNING!" });
 });
 app.get("/api", (req, res) => {
   res
