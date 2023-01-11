@@ -48,7 +48,7 @@ const uploadInputDataFile = async (req, res, next) => {
   // just a file name
   const fileName = req.body.fileName;
   // for testing, recive data from body [{'Company name':'google', 'company domain': 'google.com'}]
-  const data = req.body.data || []
+  const data = req.body.data || [];
   // const data = [
   //   { Company_name: "google", Domain_name: "google.com" },
   //   { Company_name: "cience", Domain_name: "cience.com" },
@@ -130,13 +130,13 @@ const uploadInputDataFile = async (req, res, next) => {
         `('${row.company_name}', '${row.domain_name}',${customer_file_result.data.ID},'${customer_id}')`
     )
     .join(",");
-  const create_recipe_data_query = `INSERT INTO ${recipeInputTable} (COMPANY_NAME, COMPANY_DOMAIN, CUSTOMER_FILES_ID, CUSTOMER_ID)
+  const create_file_data_query = `INSERT INTO ${recipeInputTable} (COMPANY_NAME, COMPANY_DOMAIN, CUSTOMER_FILES_ID, CUSTOMER_ID)
     SELECT t.company_name, t.company_domain, t.customer_files_id, t.customer_id
     FROM (
       VALUES
       ${values}
     ) t(company_name, company_domain, customer_files_id, customer_id);`;
-  const data_result = await connectAndExecuteQuery(create_recipe_data_query);
+  const data_result = await connectAndExecuteQuery(create_file_data_query);
   if (data_result.error) {
     res.status(500).json({
       status: "Internal Server Error",
@@ -145,17 +145,17 @@ const uploadInputDataFile = async (req, res, next) => {
     });
     return;
   }
+  const dataToRespond = {
+    customer_file_id: customer_file_result.data.ID,
+    data_to_enrich: data_result.data[0]["number of rows inserted"],
+    customer_file_process_id: create_customer_file_process_result.data.data.ID,
+  };
   res.status(create_customer_file_process_result.statusCode).json({
     status: "Success",
     message: "Success",
     statusCode: 200,
     dataType: "aaa",
-    data: {
-      customer_file_id: customer_file_result?.data?.ID,
-      data_to_enrich: data_result.data["number of rows inserted"],
-      customer_file_process_id:
-        create_customer_file_process_result.data.data.ID,
-    },
+    data: dataToRespond,
   });
   return;
 };

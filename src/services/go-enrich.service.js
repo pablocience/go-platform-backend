@@ -91,7 +91,7 @@ const createCustomerFileProcess = async ({
       };
     }
   } catch (error) {
-    log.error("error<<<<<<<", error);
+    console.error("SERVER ERROR:>", error);
     return {
       message: error.message,
       error: true,
@@ -110,10 +110,19 @@ const createCustomerFileProcess = async ({
   return result;
 };
 
+const getRecipeIdByRecipeName = async () => {
+  const query = `SELECT ID FROM EXPLORIUM_RECIPES WHERE NAME = '${recipe_name}'`;
+  const recipe_result = connectAndExecuteQuery(query);
+  const { data } = recipe_result;
+  console.log("getRecipeIdByRecipeName", data);
+  return data;
+};
+
 module.exports = {
   getMyFilesService,
   getAvailableRecipeColumnsService,
   getAvailableRecipesService,
   createCustomerFile,
   createCustomerFileProcess,
+  getRecipeIdByRecipeName,
 };
