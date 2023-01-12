@@ -9,7 +9,17 @@ const getMyFilesService = async (customer_id) => {
       statusCode: 404,
     };
   }
-  const query = `SELECT * FROM CUSTOMER_FILES WHERE customer_id = '${customer_id}'`;
+  const query = `SELECT CF.ID AS FILE_ID, CF.FILE_NAME, CF.UPLOAD_DATE, 
+  CFP.ID AS CUSTOMER_FILE_PROCESS_ID, CFP.STATUS, CFP.RECIPE_ID,
+  CFPQ.POSITION as QUEUE_POSITION
+  FROM CUSTOMER_FILES as CF
+  INNER JOIN CUSTOMER_FILE_PROCESSES as CFP
+  ON CF.CUSTOMER_ID = CFP.CUSTOMER_ID
+  AND CF.ID = CFP.CUSTOMER_FILES_ID
+  LEFT JOIN CUSTOMER_FILE_PROCESS_QUEUE as CFPQ
+  ON CFP.ID = CFPQ.CUSTOMER_FILE_PROCESS_ID
+  WHERE CF.CUSTOMER_ID='${customer_id}'
+  ORDER BY CF.UPLOAD_DATE DESC;`;
   const result = await connectAndExecuteQuery(query);
   return result;
 };
