@@ -6,6 +6,7 @@ const {
   getAvailableRecipes,
   getAvailableRecipeColumns,
   createCustomerFileController,
+  startToEnrich,
 } = require("../controllers/go-enrich.controller");
 const { runJob, getJobStatus } = require("../controllers/explorium.controller");
 
@@ -14,6 +15,7 @@ router.get("/myfiles", getMyFiles);
 router.get("/recipes", getAvailableRecipes);
 router.get("/recipes/:recipeId/columns", getAvailableRecipeColumns);
 router.post("/myfiles/upload", uploadInputDataFile);
+router.post("/myfiles/start-enrich", startToEnrich);
 router.post("/create_customer_files", createCustomerFileController);
 router.post("/run-job/:recipeName", runJob);
 router.get("/query-job/:jobId", getJobStatus);

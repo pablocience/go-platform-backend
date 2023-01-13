@@ -5,6 +5,7 @@ const {
   createCustomerFile,
   getAvailableRecipesService,
   createCustomerFileProcess,
+  startToEnrichService,
 } = require("../services/go-enrich.service");
 const {
   validateUserInputRecipeTableByRecipeName,
@@ -13,7 +14,7 @@ const {
 // GET
 const getMyFiles = async (req, res, next) => {
   const customer_id = req.headers.customer_id;
-  let result = await getMyFilesService(customer_id);
+  const result = await getMyFilesService(customer_id);
   res.status(result.statusCode).json({
     ...result,
   });
@@ -127,7 +128,7 @@ const uploadInputDataFile = async (req, res, next) => {
   const values = data
     .map(
       (row) =>
-        `('${row.company_name}', '${row.domain_name}',${customer_file_result.data.ID},'${customer_id}')`
+        `('${row.company_name}', '${row.company_domain}',${customer_file_result.data.ID},'${customer_id}')`
     )
     .join(",");
   const create_file_data_query = `INSERT INTO ${recipeInputTable} (COMPANY_NAME, COMPANY_DOMAIN, CUSTOMER_FILES_ID, CUSTOMER_ID)
@@ -182,10 +183,38 @@ const createCustomerFileController = async (req, res, next) => {
     data: customer_file_result.data,
   });
 };
+
+const startToEnrich = async (req, res, next) => {
+  const customer_file_process_id = req.body.customer_file_process_id;
+  const customer_id = req.headers.customer_id;
+  const response = await startToEnrichService({
+    customer_file_process_id,
+    customer_id,
+  });
+  console.log("response-controller", response);
+  if (response.checkQueueResult.error || response.insertToQueueResult.error) {
+    res.status(500).json({
+      status: "Internal Server Error",
+      message: "Internal Server Error",
+      statusCode: 500,
+    });
+    return;
+  }
+  res.status(200).json({
+    status: "Success",
+    message: "Success",
+    statusCode: 200,
+    data: {
+      insertToQueueResult: response.insertToQueueResult.data,
+      checkQueueResult: response.checkQueueResult.data,
+    },
+  });
+};
 module.exports = {
   getMyFiles,
   uploadInputDataFile,
   getAvailableRecipes,
   getAvailableRecipeColumns,
   createCustomerFileController,
+  startToEnrich,
 };

@@ -128,6 +128,29 @@ const getRecipeIdByRecipeName = async () => {
   return data;
 };
 
+const startToEnrichService = async ({
+  customer_file_process_id,
+  customer_id,
+}) => {
+  const checkQueue = `SELECT COUNT(*) AS QUEUE_COUNT
+  FROM CUSTOMER_FILE_PROCESS_QUEUE
+  INNER JOIN CUSTOMER_FILE_PROCESSES
+  ON CUSTOMER_FILE_PROCESS_QUEUE.CUSTOMER_FILE_PROCESS_ID = CUSTOMER_FILE_PROCESSES.ID
+  WHERE CUSTOMER_FILE_PROCESSES.RECIPE_ID = 1;`;
+  const checkQueueResult = await connectAndExecuteQuery(checkQueue);
+  console.log("checkQueueResult-service", checkQueueResult);
+  const insertToQueue = `INSERT INTO CUSTOMER_FILE_PROCESS_QUEUE (CUSTOMER_FILE_PROCESS_ID, POSITION) VALUES (${customer_file_process_id}, '${2}');`;
+  const insertToQueueResult = await connectAndExecuteQuery(insertToQueue);
+  return { checkQueueResult, insertToQueueResult };
+
+  const move_to_enrich_recipe = `INSERT INTO EPLORIUM_INPUT_RECIPE_1 (COMPANY_NAME, COMPANY_DOMAIN)
+  SELECT UIR.COMPANY_NAME, UIR.COMPANY_DOMAIN
+  FROM USER_INPUT_RECIPE_1 UIR
+  INNER JOIN CUSTOMER_FILE_PROCESSES CFP
+  ON UIR.CUSTOMER_FILES_ID = CFP.CUSTOMER_FILES_ID
+  WHERE CFP.ID = ${customer_file_process_id} AND UIR.CUSTOMER_ID = '${customer_id}';`;
+};
+
 module.exports = {
   getMyFilesService,
   getAvailableRecipeColumnsService,
@@ -135,4 +158,5 @@ module.exports = {
   createCustomerFile,
   createCustomerFileProcess,
   getRecipeIdByRecipeName,
+  startToEnrichService,
 };
