@@ -1,3 +1,4 @@
+const axios = require('axios')
 const { connectAndExecuteQuery } = require("../config/database");
 const getMyFilesService = async (customer_id) => {
   if (!customer_id || customer_id == "") {
@@ -132,6 +133,41 @@ const startToEnrichService = async ({
   customer_file_process_id,
   customer_id,
 }) => {
+  // CLEAR EPLORIUM_INPUT_RECIPE_1 table
+  const query_to_clear_EXPLORIUM_INPUT_RECIPE_1 = `DELETE FROM ENRICH_INPUT_RECIPE_1;`;
+  // CLEAR ENRICH_OUTPUT_RECIPE_1 table
+  const query_to_clear_ENRICH_OUTPUT_RECIPE_1 = `DELETE FROM ENRICH_OUTPUT_RECIPE_1;`;
+  const clear_input_before = await connectAndExecuteQuery(
+    query_to_clear_EXPLORIUM_INPUT_RECIPE_1
+  );
+  const clear_output_before = await connectAndExecuteQuery(
+    query_to_clear_ENRICH_OUTPUT_RECIPE_1
+  );
+  const move_to_enrich_recipe = `INSERT INTO EPLORIUM_INPUT_RECIPE_1 (COMPANY_NAME, COMPANY_DOMAIN)
+  SELECT UIR.COMPANY_NAME, UIR.COMPANY_DOMAIN
+  FROM USER_INPUT_RECIPE_1 UIR
+  INNER JOIN CUSTOMER_FILE_PROCESSES CFP
+  ON UIR.CUSTOMER_FILES_ID = CFP.CUSTOMER_FILES_ID
+  WHERE CFP.ID = ${customer_file_process_id} AND UIR.CUSTOMER_ID = '${customer_id}';`;
+  const update_process_status = `UPDATE CUSTOMER_FILE_PROCESSES SET STATUS = 'IN_PROGRESS' WHERE ID = ${customer_file_process_id};`;
+  const change_status = await connectAndExecuteQuery(update_process_status);
+  const move_to_enrich_table_result = await connectAndExecuteQuery(
+    move_to_enrich_recipe
+  );
+  // run job
+  let recipeToUse = "63af437f4ba1b5d9df51823c";
+  try {
+    const { data } = await axios({
+      url: `${process.env.EXPLORIUM_JOB_API}/jobs/${recipePath}/run`,
+      method: "POST",
+      headers: {
+        API_KEY: process.env.EXPLORIUM_JOB_APIKEY,
+      },
+    });
+  } catch (error) {
+
+  }
+  return 
   const checkQueue = `SELECT COUNT(*) AS QUEUE_COUNT
   FROM CUSTOMER_FILE_PROCESS_QUEUE
   INNER JOIN CUSTOMER_FILE_PROCESSES
@@ -141,14 +177,8 @@ const startToEnrichService = async ({
   console.log("checkQueueResult-service", checkQueueResult);
   const insertToQueue = `INSERT INTO CUSTOMER_FILE_PROCESS_QUEUE (CUSTOMER_FILE_PROCESS_ID, POSITION) VALUES (${customer_file_process_id}, '${2}');`;
   const insertToQueueResult = await connectAndExecuteQuery(insertToQueue);
-  return { checkQueueResult, insertToQueueResult };
 
-  const move_to_enrich_recipe = `INSERT INTO EPLORIUM_INPUT_RECIPE_1 (COMPANY_NAME, COMPANY_DOMAIN)
-  SELECT UIR.COMPANY_NAME, UIR.COMPANY_DOMAIN
-  FROM USER_INPUT_RECIPE_1 UIR
-  INNER JOIN CUSTOMER_FILE_PROCESSES CFP
-  ON UIR.CUSTOMER_FILES_ID = CFP.CUSTOMER_FILES_ID
-  WHERE CFP.ID = ${customer_file_process_id} AND UIR.CUSTOMER_ID = '${customer_id}';`;
+  return { checkQueueResult, insertToQueueResult };
 };
 
 module.exports = {
